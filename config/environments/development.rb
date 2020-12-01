@@ -36,8 +36,11 @@ require 'byebug'
 module GeocoderWrapper
   Geocoder::Configuration.always_raise = :all
   CACHE = CacheManager.new(ActiveSupport::Cache::NullStore.new)
+  # CACHE = CacheManager.new(ActiveSupport::Cache::FileStore.new(File.join(Dir.tmpdir, 'geocoder'), namespace: 'geocoder', expires_in: 60*60*24*1))
 
-  ADDOK_FRA = Wrappers::Addok.new(CACHE, 'http://api-adresse.data.gouv.fr', 'France', 'poly/france.kml', PointInPolygon.new('./poly/france-ile-de-batz.sqlite'))
+
+  ADDOK_FRA = Wrappers::Addok.new(CACHE, 'localhost:7878', 'France', 'poly/france.kml', PointInPolygon.new('./poly/france-ile-de-batz.sqlite'))
+  ADDOK_LU = Wrappers::Addok.new(CACHE, 'localhost:7878', 'Luxemburg', 'poly/luxemburg.kml', PointInPolygon.new('./poly/luxemburg.sqlite'))
   OPENCAGEDATA = Wrappers::RubyGeocoderOpencagedata.new(CACHE)
   HERE = Wrappers::RubyGeocoderHere.new(CACHE)
   ESRI = Wrappers::Esri.new(nil, nil, CACHE)
@@ -58,8 +61,9 @@ module GeocoderWrapper
       standard: {
         geocoders: {
           fra: ADDOK_FRA,
+          lux: ADDOK_LU,
         },
-        geocoder_fallback: OPENCAGEDATA,
+        geocoder_fallback: HERE,
         params_limit: PARAMS_LIMIT,
         quotas: QUOTAS, # Only taken into account if REDIS_COUNT
         map: {
@@ -73,7 +77,7 @@ module GeocoderWrapper
       here: ['APP_ID', 'APP_CODE'],
       opencagedata: 'API_KEY'
     },
-    addok_endpoint: '/search',
+    addok_endpoint: '/search2steps',
     redis_count: REDIS_COUNT,
   }
 end
